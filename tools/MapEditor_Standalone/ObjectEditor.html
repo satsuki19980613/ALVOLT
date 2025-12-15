@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>TradingShooter Object Collider Editor (Rect Only)</title>
+    <style>
+        body { margin: 0; background: #222; color: #eee; display: flex; height: 100vh; font-family: sans-serif; overflow: hidden; }
+        #sidebar { width: 300px; background: #333; padding: 15px; border-right: 1px solid #444; display: flex; flex-direction: column; gap: 10px; }
+        #main { flex: 1; position: relative; background: #111; background-image: radial-gradient(#222 1px, transparent 1px); background-size: 20px 20px; }
+        canvas { display: block; width: 100%; height: 100%; }
+        
+        h3 { margin: 0 0 10px 0; color: #00bcd4; border-bottom: 1px solid #555; padding-bottom: 5px; }
+        .control-group { background: #2a2a2a; padding: 10px; border-radius: 4px; margin-bottom: 10px; }
+        label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; align-items: center; }
+        input[type="text"], input[type="number"] { background: #444; border: 1px solid #555; color: white; width: 60px; padding: 2px; text-align: right; }
+        input[type="text"] { width: 100%; text-align: left; }
+        
+        button { background: #00bcd4; color: white; border: none; padding: 8px; cursor: pointer; border-radius: 4px; font-weight: bold; width: 100%; margin-bottom: 5px; }
+        button:hover { background: #00acc1; }
+        button.danger { background: #f44336; }
+        button.secondary { background: #555; }
+
+        #collider-list { flex: 1; overflow-y: auto; border: 1px solid #444; background: #222; }
+        .collider-item { padding: 8px; border-bottom: 1px solid #333; cursor: pointer; font-size: 13px; display: flex; justify-content: space-between; }
+        .collider-item:hover { background: #333; }
+        .collider-item.selected { background: #00bcd4; color: #fff; }
+        
+        #json-output { height: 100px; background: #111; color: #0f0; border: 1px solid #333; font-family: monospace; font-size: 11px; padding: 5px; resize: none; }
+    </style>
+</head>
+<body>
+
+<div id="sidebar">
+    <h3>Object Settings</h3>
+    <div class="control-group">
+        <label>Class Name (Skin ID) <input type="text" id="inp-classname" value="obs-hexagon-fortress-animated"></label>
+        <label>Total Width <input type="number" id="inp-width" value="160"></label>
+        <label>Total Height <input type="number" id="inp-height" value="160"></label>
+        <button id="btn-load-skin" class="secondary">Load Skin</button>
+    </div>
+
+    <h3>Colliders (Rect Only)</h3>
+    <div style="display: flex; gap: 5px;">
+        <button id="btn-add-rect" style="width: 100%;">+ Add Rectangle</button>
+        </div>
+    <div id="collider-list"></div>
+
+    <div class="control-group" id="prop-panel" style="display:none;">
+        <label>Type: <span id="prop-type">Rect</span></label>
+        <label>Offset X <input type="number" id="prop-x"></label>
+        <label>Offset Y <input type="number" id="prop-y"></label>
+        <label>Width <input type="number" id="prop-w"></label>
+        <label>Height <input type="number" id="prop-h"></label>
+        
+        <label>Rotation (Deg) <input type="number" id="prop-angle"></label>
+
+        <div style="margin-top:10px;"></div>
+        <button class="danger" id="btn-delete">Delete Selected</button>
+    </div>
+
+    <button id="btn-export">Copy JSON to Clipboard</button>
+    <textarea id="json-output" readonly></textarea>
+</div>
+
+<div id="main">
+    <canvas id="editor-canvas"></canvas>
+</div>
+
+<script type="module" src="./src/ObjectEditorCore.js"></script>
+
+</body>
+</html>

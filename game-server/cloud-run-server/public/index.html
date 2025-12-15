@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <title>TradingShooter</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="logo.css" />
+  </head>
+  <body>
+<div id="orientation-warning">
+      <div class="icon">📱</div>
+      <h2>ROTATE DEVICE</h2>
+      <p>Please use Portrait Mode for Menu.</p>
+    </div>
+
+    <div id="screen-home" class="screen active" style="background: transparent;">
+      <canvas id="menu-canvas" style="display: block; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;"></canvas>
+
+      <div id="audio-loading-container" class="audio-loader" style="position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+          z-index: 100;">
+          <div id="audio-loading-bar" class="audio-loader-fill"></div>
+      </div>
+    </div>
+    <div id="screen-loading" class="screen">
+      <div class="screen-content"><h2 id="loading-text">Loading...</h2></div>
+    </div>
+    <div id="modal-register" class="ui-modal hidden">
+  <div class="modal-content cyber-panel">
+    <h3>PILOT REGISTRATION</h3>
+    <p>Please enter your codename.</p>
+    <div class="input-group">
+      <input type="text" id="reg-name-input" maxlength="10" placeholder="CODENAME" autocomplete="off">
+    </div>
+    <div class="modal-actions">
+      <button id="btn-do-register" class="ui-button primary">REGISTER</button>
+      <button id="btn-close-register" class="ui-button">CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-transfer" class="ui-modal hidden">
+  <div class="modal-content cyber-panel">
+    <h3>DATA TRANSFER</h3>
+    
+    <div class="transfer-section">
+      <h4>RECOVER DATA</h4>
+      <p>Enter your transfer code to recover account.</p>
+      <div class="input-group">
+        <input type="text" id="recover-code-input" placeholder="TRANSFER CODE">
+      </div>
+      <button id="btn-do-recover" class="ui-button primary">RECOVER</button>
+    </div>
+
+    <hr class="cyber-separator">
+
+    <div id="section-issue-code" class="transfer-section member-only">
+      <h4>ISSUE CODE</h4>
+      <p>Issue a code to transfer this account.</p>
+      <div id="transfer-code-display" class="code-display">----</div>
+      <button id="btn-issue-code" class="ui-button">ISSUE CODE</button>
+    </div>
+
+    <div class="modal-actions">
+      <button id="btn-close-transfer" class="ui-button">CLOSE</button>
+    </div>
+  </div>
+</div>
+    <div id="screen-game" class="screen">
+      <div id="cockpit-container" class="overlay-layout">
+        <div id="game-field-wrapper" class="full-screen-layer">
+          <div id="game-field-container">
+            <canvas id="game-field" tabindex="0"></canvas>
+            <canvas
+              id="ui-field"
+              style="position: absolute; top: 0; left: 0; pointer-events: none"
+            ></canvas>
+            <div id="obstacle-layer"></div>
+          </div>
+        </div>
+        <div id="hud-layer" class="full-screen-layer">
+          <div id="hud-dashboard">
+            <div class="hud-upper-row">
+              <div class="dashboard-item status-group">
+                <div class="panel-module transparent-bg">
+                  <div class="panel-header-row">
+                    <h3>STATUS</h3>
+                  </div>
+                  <div id="hud-status-area">
+                    <div class="stat-row">
+                      <span class="stat-label">HP</span>
+                      <div class="stat-bar-outer">
+                        <div id="hp-bar-inner" class="stat-bar hp"></div>
+                      </div>
+                      <span id="hp-value" class="stat-value">100</span>
+                    </div>
+                    <div class="stat-row">
+                      <span class="stat-label">EP</span>
+                      <div
+                        class="stat-bar-outer"
+                        style="visibility: hidden; height: 0"
+                      ></div>
+                      <span id="ep-value" class="stat-value ep-value">100</span>
+                    </div>
+                    <div class="stat-row no-bar">
+                      <span class="stat-label">Size</span>
+                      <span id="size-value" class="stat-value">10</span>
+                    </div>
+                    <div class="stat-row no-bar">
+                      <span class="stat-label" id="power-label">Power</span>
+                      <span id="power-value" class="stat-value">0</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                id="bottom-chart-panel"
+                class="panel-module transparent-bg dashboard-item"
+              >
+                <div id="bottom-chart-left">
+                  <h3 class="chart-label-badge">MARKET CHART</h3>
+                  <div class="canvas-wrapper" style="height: 100%">
+                    <canvas id="chart-canvas"></canvas>
+                  </div>
+                </div>
+                <div id="ma-selection-panel">
+                  <div class="ma-option">
+                    <input
+                      type="checkbox"
+                      id="ma-short"
+                      name="ma-select"
+                      value="short"
+                      checked
+                    /><label for="ma-short">S</label>
+                  </div>
+                  <div class="ma-option">
+                    <input
+                      type="checkbox"
+                      id="ma-medium"
+                      name="ma-select"
+                      value="medium"
+                    /><label for="ma-medium">M</label>
+                  </div>
+                  <div class="ma-option">
+                    <input
+                      type="checkbox"
+                      id="ma-long"
+                      name="ma-select"
+                      value="long"
+                      checked
+                    /><label for="ma-long">L</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="hud-group top-right">
+            <div class="hud-row">
+              <div class="panel-module transparent-bg">
+                <h3>RADAR</h3>
+                <div class="canvas-wrapper">
+                  <canvas id="radar-canvas"></canvas>
+                </div>
+              </div>
+            </div>
+            <button id="btn-fullscreen-toggle" class="icon-button" title="Fullscreen">
+              <svg id="icon-fullscreen-enter" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+              </svg>
+              <svg id="icon-fullscreen-exit" class="hidden" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
+              </svg>
+            </button>
+            </div>
+          <div id="magazine-panel" class="panel-module transparent-bg">
+            <h3>MAGAZINE</h3>
+            <div class="canvas-wrapper">
+              <canvas id="magazine-canvas"></canvas>
+            </div>
+          </div>
+          <button id="btn-retire" class="ui-button small">RETIRE</button>
+          <div class="hud-group bottom-left">
+            <div
+              id="debug-panel"
+              class="ui-panel"
+              style="display: none; background: rgba(0, 0, 0, 0.5)"
+            >
+              <h4>Stats</h4>
+              <div id="debug-stats-container"></div>
+              <hr />
+              <div id="debug-simulation-container"></div>
+            </div>
+          </div>
+        </div>
+        <div id="mobile-controls-layer">
+          <div id="mc-left-bottom">
+            <div id="mc-action-cluster">
+              <button id="mc-btn-settle" class="mc-btn-entry">FIX</button>
+              <button id="mc-btn-short" class="mc-btn-entry">SHORT</button>
+              <button id="mc-btn-fire">FIRE</button>
+              <button id="mc-btn-long" class="mc-btn-entry">LONG</button>
+              <div id="mc-lot-control">
+                <button id="mc-btn-lot-minus" class="mc-btn-lot">-</button>
+                <div id="mc-lot-display">10</div>
+                <button id="mc-btn-lot-plus" class="mc-btn-lot">+</button>
+              </div>
+            </div>
+          </div>
+          <div id="mc-right-bottom">
+            <div id="mc-turn-controls">
+              <button id="mc-btn-turn-left" class="mc-btn-turn">◀</button>
+              <button id="mc-btn-turn-right" class="mc-btn-turn">▶</button>
+            </div>
+          </div>
+        </div>
+        <div id="music-notification" class="music-notification hidden">
+          <div class="music-icon">♪</div>
+          <div class="music-info">
+            <span class="music-label">Now Playing</span>
+            <span id="music-title" class="music-title">Track Name</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="screen-gameover" class="screen">
+      <div class="screen-content">
+        <h2>GAME OVER</h2>
+        <p>Score: <span id="gameover-score">0</span></p>
+        <button id="btn-gameover-retry" class="ui-button primary">Retry</button>
+        <button id="btn-gameover-home" class="ui-button">Home</button>
+      </div>
+    </div>
+    <div id="screen-ranking" class="screen">
+      <div class="screen-content cyber-panel">
+        <h2>LEADERBOARD</h2>
+        <div id="ranking-list-container" style="width: 100%; min-height: 200px; text-align: left;">
+            <ul id="full-ranking-list" style="list-style: none; padding: 0;"></ul>
+        </div>
+        <button id="btn-ranking-back" class="ui-button">BACK</button>
+      </div>
+    </div>
+
+
+    <div id="screen-idle-warning" class="screen">
+      <div class="screen-content">
+        <h2>Warning</h2>
+        <p>アイドル状態のため切断されます。</p>
+      </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/8.1.0/pixi.min.js"></script>
+    <script src="src_v2/boot.js" type="module"></script>
+  </body>
+</html>

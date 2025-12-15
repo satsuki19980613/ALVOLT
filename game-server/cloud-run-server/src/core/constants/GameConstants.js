@@ -1,0 +1,11 @@
+/**
+ * ゲーム全体で使用する定数定義
+ */
+export const GameConstants = {
+  GAME_LOOP_INTERVAL: 16,
+  BROADCAST_INTERVAL: 33,
+  CHART_UPDATE_INTERVAL: 500,
+  WORLD_WIDTH: 3000,
+  WORLD_HEIGHT: 3000,
+  GRID_CELL_SIZE: 150,
+};

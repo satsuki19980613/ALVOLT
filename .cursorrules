@@ -1,0 +1,19 @@
+# 🛠️ ALVOLT Workflow Modes
+
+## 1. INVESTIGATE MODE (Start with "INVESTIGATE:")
+When I ask you to "INVESTIGATE: [Issue]", do NOT write code.
+1. Search the codebase (@Codebase) to identify all relevant files and logic.
+2. Output a summary in the following format for me to send to Gemini:
+   - **Target Issue:** [Summary of the issue]
+   - **Relevant Files:** [List of file paths]
+   - **Current Logic Analysis:** [Brief explanation of how it works now]
+   - **Request to Architect:** "Please provide a solution and implementation code based on the ALVOLT project rules."
+
+## 2. AUDIT MODE (Start with "AUDIT:")
+When I ask you to "AUDIT:", check the current changes (git diff) against `docs/02_project_rules.md` and `docs/00_architecture.md`.
+1. **Check:** Are there any hardcoded magic numbers?
+2. **Check:** Is the DDD layer separation maintained? (e.g., Logic layer should not depend on UI)
+3. **Check:** Are variable names consistent?
+4. **Verdict:**
+   - ✅ PASS: "No violations found. Ready to commit."
+   - ❌ FAIL: List specific violations and suggest fixes.

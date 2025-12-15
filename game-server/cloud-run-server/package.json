@@ -1,0 +1,20 @@
+{
+  "name": "energy-charge-shooter-server",
+  "version": "1.0.0",
+  "description": "権威サーバー (Cloud Run)",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/application/index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "firebase-admin": "^11.10.1",
+    "uuid": "^13.0.0",
+    "ws": "^8.13.0"
+  },
+  "engines": {
+    "node": "18"
+  }
+}

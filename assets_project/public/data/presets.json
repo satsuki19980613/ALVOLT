@@ -1,0 +1,324 @@
+[
+  
+  {
+  "id": "obs-hexagon-fortress-animated",
+  "name": "obs-hexagon-fortress-animated",
+  "type": "obstacle_wall",
+  "className": "obs-hexagon-fortress-animated",
+  "width": 160,
+  "height": 160,
+  "borderRadius": 0,
+  "colliders": [
+    {
+      "type": "rect",
+      "x": 0,
+      "y": 0,
+      "w": 26,
+      "h": 26,
+      "angle": 0
+    }
+  ]
+},
+ {
+  "id": "obs-long-corner",
+  "name": "obs-long-corner",
+  "type": "obstacle_wall",
+  "className": "obs-long-corner",
+  "width": 320,
+  "height": 220,
+  "borderRadius": 0,
+  "colliders": [
+    {
+      "type": "rect",
+      "x": 11,
+      "y": 26,
+      "w": 287,
+      "h": 100,
+      "angle": 0
+    },
+    {
+      "type": "rect",
+      "x": -129.5,
+      "y": 50.5,
+      "w": 29,
+      "h": 40,
+      "angle": 45
+    },
+    {
+      "type": "rect",
+      "x": -104.5,
+      "y": -11,
+      "w": 99,
+      "h": 129,
+      "angle": 0
+    }
+  ]
+},
+{
+  "id": "obs-long-cross",
+  "name": "obs-long-cross",
+  "type": "obstacle_wall",
+  "className": "obs-long-cross",
+  "width": 240,
+  "height": 360,
+  "borderRadius": 0,
+  "colliders": [
+    {
+      "type": "rect",
+      "x": -0.5,
+      "y": 9.5,
+      "w": 61,
+      "h": 340,
+      "angle": 0
+    },
+    {
+      "type": "rect",
+      "x": 29.5,
+      "y": 11.5,
+      "w": 40,
+      "h": 302,
+      "angle": 0
+    },
+    {
+      "type": "rect",
+      "x": -30.5,
+      "y": 11,
+      "w": 40,
+      "h": 300,
+      "angle": 0
+    },
+    {
+      "type": "rect",
+      "x": -0.5,
+      "y": -50,
+      "w": 220,
+      "h": 56,
+      "angle": 0
+    },
+    {
+      "type": "rect",
+      "x": -0.5,
+      "y": -79.5,
+      "w": 177,
+      "h": 40,
+      "angle": 0
+    },
+    {
+      "type": "rect",
+      "x": -1,
+      "y": -20.5,
+      "w": 177,
+      "h": 40,
+      "angle": 0
+    },
+    {
+      "type": "rect",
+      "x": -85.5,
+      "y": -25.5,
+      "w": 32,
+      "h": 40,
+      "angle": 45
+    },
+    {
+      "type": "rect",
+      "x": -26.5,
+      "y": 155.5,
+      "w": 26,
+      "h": 40,
+      "angle": 45
+    },
+    {
+      "type": "rect",
+      "x": -85,
+      "y": -75,
+      "w": 32,
+      "h": 40,
+      "angle": -45
+    },
+    {
+      "type": "rect",
+      "x": 85.5,
+      "y": -75,
+      "w": 32,
+      "h": 40,
+      "angle": 45
+    },
+    {
+      "type": "rect",
+      "x": 86,
+      "y": -25.5,
+      "w": 32,
+      "h": 40,
+      "angle": -45
+    },
+    {
+      "type": "rect",
+      "x": 27.5,
+      "y": 156.5,
+      "w": 27,
+      "h": 38,
+      "angle": -45
+    },
+    {
+      "type": "rect",
+      "x": -29,
+      "y": -138,
+      "w": 33,
+      "h": 29,
+      "angle": 45
+    },
+    {
+      "type": "rect",
+      "x": 26,
+      "y": -135,
+      "w": 29,
+      "h": 40,
+      "angle": 45
+    }
+  ]
+},
+{
+  "id": "obs-ushape-hangar",
+  "name": "obs-ushape-hangar",
+  "type": "obstacle_wall",
+  "className": "obs-ushape-hangar",
+  "width": 400,
+  "height": 120,
+  "borderRadius": 0,
+  "colliders": [
+    {
+      "type": "rect",
+      "x": 0,
+      "y": -32,
+      "w": 399,
+      "h": 54,
+      "angle": 0
+    },
+    {
+      "type": "rect",
+      "x": 171,
+      "y": 28,
+      "w": 59,
+      "h": 64,
+      "angle": 0
+    },
+    {
+      "type": "rect",
+      "x": -170,
+      "y": 28,
+      "w": 59,
+      "h": 64,
+      "angle": 0
+    }
+  ]
+},
+{
+  "id": "obs-standard-cyber",
+  "name": "obs-standard-cyber",
+  "type": "obstacle_wall",
+  "className": "obs-standard-cyber",
+  "width": 180,
+  "height": 180,
+  "borderRadius": 0,
+  "colliders": [
+    {
+      "type": "rect",
+      "x": -9,
+      "y": -31,
+      "w": 154,
+      "h": 93,
+      "angle": 0
+    },
+    {
+      "type": "rect",
+      "x": 62,
+      "y": -51,
+      "w": 29,
+      "h": 45,
+      "angle": 44
+    },
+    {
+      "type": "rect",
+      "x": 68,
+      "y": 5.5,
+      "w": 40,
+      "h": 126,
+      "angle": 0
+    },
+    {
+      "type": "rect",
+      "x": 21,
+      "y": 52.5,
+      "w": 95,
+      "h": 72,
+      "angle": 0
+    },
+    {
+      "type": "rect",
+      "x": -51.5,
+      "y": 14,
+      "w": 68,
+      "h": 41,
+      "angle": 0
+    },
+    {
+      "type": "rect",
+      "x": 64,
+      "y": 64.5,
+      "w": 40,
+      "h": 29,
+      "angle": 45
+    }
+  ]
+},
+{
+  "id": "obs-wide-neon",
+  "name": "obs-wide-neon",
+  "type": "obstacle_wall",
+  "className": "obs-wide-neon",
+  "width": 320,
+  "height": 140,
+  "borderRadius": 0,
+  "colliders": [
+    {
+      "type": "rect",
+      "x": -0.5,
+      "y": 1.5,
+      "w": 311,
+      "h": 104,
+      "angle": 0
+    }
+  ]
+},
+
+{
+  "id": "obs-road-curve-flipped",
+  "name": "obs-road-curve-flipped",
+  "type": "obstacle_wall",
+  "className": "obs-road-curve-flipped",
+  "width": 400,
+  "height": 800,
+  "borderRadius": 0,
+  "colliders": []
+},
+{
+  "id": "obs-road-curve",
+  "name": "obs-road-curve",
+  "type": "obstacle_wall",
+  "className": "obs-road-curve",
+  "width": 400,
+  "height": 800,
+  "borderRadius": 0,
+  "colliders": []
+},
+{
+  "id": "obs-road-straight",
+  "name": "obs-road-straight",
+  "type": "obstacle_wall",
+  "className": "obs-road-straight",
+  "width": 400,
+  "height": 800,
+  "borderRadius": 0,
+  "colliders": []
+}
+]

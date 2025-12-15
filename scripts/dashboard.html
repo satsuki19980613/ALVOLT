@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>ALVOLT | Dev Cockpit</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f4f6f8;
+            --card-bg: #ffffff;
+            --text-main: #2d3748;
+            --text-sub: #718096;
+            --primary: #3182ce;
+            --primary-hover: #2b6cb0;
+            --success: #38a169;
+            --danger: #e53e3e;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin: 0;
+            letter-spacing: -0.02em;
+        }
+        
+        .subtitle {
+            color: var(--text-sub);
+            font-size: 0.9rem;
+            margin-top: 8px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+            font-weight: 600;
+            color: var(--text-main);
+            font-size: 1.1rem;
+        }
+
+        .step-number {
+            background: var(--bg-color);
+            color: var(--text-sub);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            margin-right: 10px;
+            font-weight: 800;
+        }
+
+        label {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            margin-bottom: 6px;
+            display: block;
+            font-weight: 600;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            background: var(--bg-color);
+            box-sizing: border-box; /* 重要 */
+            margin-bottom: 16px;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #fff;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            color: white;
+        }
+
+        .btn-primary { background-color: var(--primary); }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+        
+        .btn-success { background-color: var(--success); }
+        .btn-success:hover { filter: brightness(0.9); }
+
+        .btn-gemini { 
+            background: linear-gradient(135deg, #4285f4, #9b72cb); 
+            margin-top: 10px;
+        }
+        .btn-gemini:hover { opacity: 0.9; }
+
+        .btn-secondary { background-color: #718096; }
+        .btn-secondary:hover { background-color: #4a5568; }
+
+        #console-output {
+            margin-top: 40px;
+            width: 100%;
+            max-width: 1000px;
+            background: #1a202c;
+            color: #a0aec0;
+            border-radius: 8px;
+            padding: 20px;
+            height: 150px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .status-ok { color: #48bb78; }
+        .status-err { color: #f56565; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>ALVOLT COCKPIT</h1>
+        <div class="subtitle">Hybrid AI Development Console</div>
+    </header>
+
+    <div class="grid">
+        <div class="card">
+            <div class="card-header"><span class="step-number">1</span>Start Mission</div>
+            <label>Task Name (English)</label>
+            <input type="text" id="taskName" placeholder="e.g. fix-enemy-ai">
+            <button class="btn-primary" onclick="run('start')">Create Branch & Start</button>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><span class="step-number">2</span>Architect (Gemini)</div>
+            <p style="font-size:0.85rem; color:var(--text-sub); margin-bottom:15px;">
+                Collect context & open AI Studio to design the solution.
+            </p>
+            <button class="btn-secondary" onclick="run('pack')">📦 Copy Full Context</button>
+            <button class="btn-gemini" onclick="window.open('https://aistudio.google.com/app/prompts/new_chat', '_blank')">✨ Open Google AI Studio</button>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><span class="step-number">3</span>Audit & Save</div>
+            <label>Commit Message (Japanese)</label>
+            <input type="text" id="commitMsg" placeholder="例: 敵の攻撃ロジックを修正">
+            <button class="btn-success" onclick="run('save')">Verify & Save Progress</button>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><span class="step-number">4</span>Deploy / Sync</div>
+            <p style="font-size:0.85rem; color:var(--text-sub); margin-bottom:15px;">
+                Push changes for PR or sync main branch.
+            </p>
+            <button class="btn-primary" onclick="run('finish')" style="margin-bottom:10px;">🚀 Finish Task (PR)</button>
+            <button class="btn-secondary" onclick="run('sync')">🔄 Sync Main</button>
+        </div>
+    </div>
+
+    <div id="console-output">System Ready... Waiting for command.</div>
+
+    <script>
+        const logArea = document.getElementById('console-output');
+
+        function log(msg, type = 'info') {
+            const time = new Date().toLocaleTimeString();
+            let colorClass = '';
+            if (type === 'success') colorClass = 'status-ok';
+            if (type === 'error') colorClass = 'status-err';
+            
+            logArea.innerHTML = `<div class="${colorClass}">[${time}] > ${msg}</div>` + logArea.innerHTML;
+        }
+
+        async function run(action) {
+            let input = '';
+            
+            // 入力チェック
+            if (action === 'start') {
+                input = document.getElementById('taskName').value;
+                if(!input) return alert('タスク名を入力してください');
+            }
+            if (action === 'save') {
+                input = document.getElementById('commitMsg').value;
+                if(!input) return alert('作業内容のメモを入力してください');
+            }
+
+            log(`Processing command: [${action}]...`);
+            
+            try {
+                const res = await fetch('/api/run', {
+                    method: 'POST',
+                    body: JSON.stringify({ action, input })
+                });
+                const data = await res.json();
+                
+                if (data.output) log(data.output);
+                
+                if (data.success) {
+                    log(`✅ Command [${action}] completed successfully.`, 'success');
+                    
+                    // 成功時の入力欄クリア
+                    if (action === 'start') document.getElementById('taskName').value = '';
+                    if (action === 'save') document.getElementById('commitMsg').value = '';
+                    
+                    // Pack完了時の特別メッセージ
+                    if (action === 'pack') {
+                        alert('全コードとコンテキストをクリップボードにコピーしました！\nGeminiに貼り付けてください。');
+                    }
+
+                } else {
+                    log(`❌ Error executing [${action}]`, 'error');
+                }
+            } catch (e) {
+                log(`❌ System Error: ${e.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

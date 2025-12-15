@@ -1,0 +1,12 @@
+{
+  "name": "alvolt-project",
+  "version": "1.0.0",
+  "description": "ALVOLT: AI-Driven Development Project",
+  "scripts": {
+    "gui": "node scripts/gui-server.js",
+    "menu": "node scripts/dev-manager.js"
+  },
+  "dependencies": {
+    "ws": "^8.13.0"
+  }
+}

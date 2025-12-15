@@ -1,0 +1,6 @@
+/* 共通の基底スタイル (配置に必須) */
+.obs-base {
+    position: absolute;
+    box-sizing: border-box;
+    /* 装飾はCanvasで行うため、ここには何も書かない */
+}
