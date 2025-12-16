@@ -10,6 +10,9 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const app = express();
 const PORT = 3000;
 const ROOT_DIR = path.resolve(__dirname, '../../');
+const FIREBASE_DIR = path.join(ROOT_DIR, 'assets_project');
+// ★追加: サーバーサイドデプロイ用のディレクトリパス
+const SERVER_DEPLOY_DIR = path.join(ROOT_DIR, 'game-server', 'cloud-run-server');
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -18,7 +21,6 @@ app.use(bodyParser.json({ limit: '50mb' }));
 let model = null;
 if (process.env.GEMINI_API_KEY) {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    // 最新のFlashモデル (コンテキストウィンドウが広く、構造解析に強い)
     model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 } else {
     console.warn("⚠️ WARNING: GEMINI_API_KEY is not set.");
@@ -33,7 +35,28 @@ function runCommand(command) {
     });
 }
 
-// --- 1. ディレクトリ構造生成機能 (New) ---
+function runFirebaseCommand(command) {
+    return new Promise((resolve, reject) => {
+        // assets_project ディレクトリで実行
+        exec(command, { cwd: FIREBASE_DIR, maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
+            if (error) { console.error(`Firebase Error: ${error}`); reject(stderr || error.message); return; }
+            resolve(stdout);
+        });
+    });
+}
+
+// ★追加: サーバーデプロイ用コマンド実行関数
+function runServerCommand(command) {
+    return new Promise((resolve, reject) => {
+        // game-server/cloud-run-server ディレクトリで実行
+        exec(command, { cwd: SERVER_DEPLOY_DIR, maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
+            if (error) { console.error(`Server Deploy Error: ${error}`); reject(stderr || error.message); return; }
+            resolve(stdout);
+        });
+    });
+}
+
+// --- 1. ディレクトリ構造生成機能 ---
 function getDirectoryStructure(dir, prefix = '') {
     const IGNORE_LIST = ['.git', 'node_modules', 'dist', 'build', '.DS_Store', 'package-lock.json', '.env', '.firebaserc'];
     let output = '';
@@ -109,23 +132,18 @@ app.post('/api/audit', async (req, res) => {
     try {
         if (!model) return res.json({ result: "ERROR", aiResponse: "API Key missing." });
 
-        // 1. 差分取得
         const diff = await runCommand('git diff HEAD');
         if (!diff || diff.trim() === "") return res.json({ result: "NO_DIFF", aiResponse: "変更差分がありません。" });
 
-        // 2. ルール取得
         const rulesPath = path.join(ROOT_DIR, '.cursorrules');
         const rules = fs.existsSync(rulesPath) ? fs.readFileSync(rulesPath, 'utf-8') : "特になし";
 
-        // 3. 全コード取得
         console.log("📚 Reading codebase...");
         const fullCodebase = getProjectContext();
 
-        // 4. ディレクトリ構造取得 (New)
         console.log("🌲 Reading directory structure...");
         const treeStructure = getDirectoryStructure(ROOT_DIR);
 
-        // 5. プロンプト作成
         const prompt = `
 あなたはALVOLTプロジェクトのリードエンジニアです。
 プロジェクトの「全体構造(Tree)」「全ソースコード(Context)」「今回の変更差分(Diff)」を渡します。
@@ -173,14 +191,11 @@ ${fullCodebase}
 
 app.post('/api/deploy-test', async (req, res) => {
     const { message } = req.body;
-    let branchName = ""; // 変数を外で定義
+    let branchName = ""; 
     let currentBranch = "";
 
     try {
-        // 現在のブランチ名を保存しておく（エラー時に戻れるように）
         currentBranch = (await runCommand('git branch --show-current')).trim();
-
-        // 新しいブランチ名を作成
         branchName = `fix/${new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 12)}`;
 
         // 1. ブランチ作成 & コミット
@@ -188,21 +203,21 @@ app.post('/api/deploy-test', async (req, res) => {
         await runCommand('git add .');
         await runCommand(`git commit -m "${message}"`);
 
-        // 2. デプロイ実行
-        // ※ 失敗するとここで catch に飛びます
-        await runCommand('firebase deploy --only hosting,functions'); // :staging を消した場合はこちらも合わせる
+        // 2. Client Deploy (Test Environment)
+        console.log("🚀 Deploying Client to Dev (Firebase)...");
+        await runFirebaseCommand('firebase deploy --project alvolt-dev --only hosting');
+
+        // 3. Server Deploy (Test Environment)
+        console.log("🚀 Deploying Server to Dev (Cloud Run)...");
+        await runServerCommand('gcloud run deploy alvolt-server-dev --source . --project alvolt-dev --region asia-northeast1 --allow-unauthenticated');
 
         res.json({ success: true, branch: branchName });
 
     } catch (e) { 
         console.error("❌ Deploy Failed. Rolling back...");
         
-        // --- ★自動ロールバック機能★ ---
         try {
-            // 元のブランチ(mainなど)に戻る
             if (currentBranch) await runCommand(`git checkout ${currentBranch}`);
-            
-            // 作ってしまった失敗ブランチを削除
             if (branchName) {
                 await runCommand(`git branch -D ${branchName}`);
                 console.log(`🗑️ Cleaned up branch: ${branchName}`);
@@ -210,7 +225,6 @@ app.post('/api/deploy-test', async (req, res) => {
         } catch (cleanupError) {
             console.error("⚠️ Cleanup failed:", cleanupError);
         }
-        // -----------------------------
 
         res.status(500).json({ error: e.toString() + "\n(作成されたブランチは自動削除されました)" }); 
     }
@@ -220,14 +234,31 @@ app.post('/api/deploy-prod', async (req, res) => {
     try {
         const currentBranch = (await runCommand('git branch --show-current')).trim();
         if (currentBranch === 'main') throw new Error("Main branch protection.");
+        
+        // 1. Merge to Main
         await runCommand('git checkout main');
         await runCommand(`git merge ${currentBranch}`);
+        
+        // 2. Tagging
         const tagName = `release-${new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 12)}`;
         await runCommand(`git tag ${tagName}`);
-        await runCommand('firebase deploy --only hosting:default,functions');
+        
+        // 3. Client Deploy (Production Environment)
+        console.log("🚀 Deploying Client to Production (Firebase)...");
+        await runFirebaseCommand('firebase deploy --project alvolt-official --only hosting');
+
+        // 4. Server Deploy (Production Environment)
+        console.log("🚀 Deploying Server to Production (Cloud Run)...");
+        await runServerCommand('gcloud run deploy alvolt-server-official --source . --project alvolt-official --region asia-northeast1 --allow-unauthenticated');
+
+        // 5. Cleanup
         await runCommand(`git branch -D ${currentBranch}`);
         res.json({ success: true, tag: tagName });
-    } catch (e) { res.status(500).json({ error: e.toString() }); }
+
+    } catch (e) { 
+        console.error(e);
+        res.status(500).json({ error: e.toString() }); 
+    }
 });
 
 app.listen(PORT, () => {
