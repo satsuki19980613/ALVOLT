@@ -1,6 +1,7 @@
 {
   "projects": {
-    "default": "trading-charge-shooter"
+    "default": "alvolt-official",  
+    "staging": "alvolt-dev"        
   },
   "targets": {},
   "etags": {}

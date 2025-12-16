@@ -4,8 +4,8 @@ import { ObstacleSkins } from "../../../game-server/cloud-run-server/public/src/
 const engine = new EditorCore("editor-canvas", "dom-preview-layer");
 const presetList = document.getElementById("preset-list");
 const canvasWrapper = document.getElementById("canvas-wrapper");
-const ASSET_BASE_URL = "https://trading-charge-shooter.web.app";
-const PRESETS_URL = "https://trading-charge-shooter.web.app/data/presets.json";
+const ASSET_BASE_URL = "https://alvolt-official.web.app";
+const PRESETS_URL = "https://alvolt-official.web.app/data/presets.json";
 
 async function initEditor() {
   try {

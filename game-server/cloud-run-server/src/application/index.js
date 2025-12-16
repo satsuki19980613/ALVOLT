@@ -11,19 +11,30 @@ import { ServerGame } from "./ServerGame.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-initializeApp({ projectId: "trading-charge-shooter" });
+// Firebase初期化 (エラーハンドリング付き)
+try {
+  initializeApp({ projectId: "ALVOLT" });
+  console.log("Firebase Admin SDK initialized.");
+} catch (e) {
+  console.log("Firebase Admin SDK already initialized or failed: " + e.message);
+}
+
 const firestore = getFirestore();
-console.log("Firebase Admin SDK initialized.");
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: true })); // 全オリジン許可(デバッグ用)
 app.use(express.json());
 
 const staticPath = path.join(__dirname, "../../public");
 app.use(express.static(staticPath));
-console.log(`Serving static files from: ${staticPath}`);
 
-const PORT = process.env.PORT || 8080;
+// ヘルスチェック用エンドポイント (重要！)
+app.get("/", (req, res) => {
+  res.send("ALVOLT Game Server is Running!");
+});
+
+// ポート設定 (Cloud Runの要件)
+const PORT = parseInt(process.env.PORT) || 8080;
 const server = createServer(app);
 const wss = new WebSocketServer({ server });
 
@@ -55,22 +66,34 @@ wss.on("connection", (ws, req) => {
   let userId = null;
   let game = null;
 
+  console.log("[WS] New connection attempt..."); // ログ追加
+
   try {
-    const params = new URLSearchParams(req.url.split("?")[1]);
+    // URLパース処理の安全性向上
+    const urlParts = req.url.split("?");
+    if (urlParts.length < 2) {
+        ws.close(1008, "Query params missing");
+        return;
+    }
+    const params = new URLSearchParams(urlParts[1]);
+    
     userId = params.get("userId");
     const playerName = params.get("playerName") || "Guest";
     const isDebug = params.get("debug") === "true";
 
     if (!userId) {
+      console.log("[WS] Connection rejected: No userId");
       ws.close(1008, "userId required");
       return;
     }
 
-    game = findOrCreateRoom();
+    console.log(`[WS] Player joining: ${playerName} (${userId})`);
 
+    game = findOrCreateRoom();
     game.addPlayer(userId, playerName, ws, isDebug);
 
     ws.on("message", (message) => {
+      // (中略 - そのまま)
       const isBinary =
         Buffer.isBuffer(message) || message instanceof ArrayBuffer;
 
@@ -79,6 +102,7 @@ wss.on("connection", (ws, req) => {
         if (buf.length >= 15) {
           const msgType = buf.readUInt8(0);
           if (msgType === 2) {
+             // ... バイナリ処理そのまま ...
             const mask = buf.readUInt16LE(1);
             const seq = buf.readUInt32LE(3);
             const mouseX = buf.readFloatLE(7);
@@ -124,11 +148,13 @@ wss.on("connection", (ws, req) => {
     });
 
     ws.on("close", () => {
-      if (game) game.removePlayer(userId);
+        console.log(`[WS] Closed: ${userId}`);
+        if (game) game.removePlayer(userId);
     });
 
-    ws.on("error", () => {
-      if (game) game.removePlayer(userId);
+    ws.on("error", (err) => {
+        console.error(`[WS] Error for ${userId}:`, err);
+        if (game) game.removePlayer(userId);
     });
   } catch (e) {
     console.error("Connection Error:", e);
@@ -136,8 +162,8 @@ wss.on("connection", (ws, req) => {
   }
 });
 
-
-
-server.listen(PORT, () => {
+// ★ここが最重要修正ポイント！
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Health check available at http://0.0.0.0:${PORT}/`);
 });

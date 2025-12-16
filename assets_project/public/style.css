@@ -1,0 +1,1302 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=ZCOOL+QingKe+HuangYou&display=swap');
+
+/* =========================================
+   UTILITIES & RESET
+   ========================================= */
+.hidden {
+  display: none !important;
+}
+
+body {
+  /* Font Priorities: Orbitron > WDXL > ZCOOL > sans-serif */
+  font-family: "Orbitron", "WDXL Lubrifont JP N", "ZCOOL QingKe HuangYou", sans-serif !important;
+  background-color: #000000;
+  color: #f0f0f0;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh; /* Modern mobile viewport fix */
+  box-sizing: border-box;
+  user-select: none;
+  /* Safe area for notched phones */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  letter-spacing: 1px;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Canvas background (lowest layer) */
+#menu-canvas {
+  z-index: 0;
+  pointer-events: auto;
+}
+
+/* =========================================
+   GAME CONTAINER & LAYERS
+   ========================================= */
+#cockpit-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  overflow: hidden;
+}
+
+.full-screen-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#game-field-wrapper,
+#game-field-container {
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+#obstacle-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  pointer-events: none;
+}
+
+#hud-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 20;
+  pointer-events: none;
+}
+
+/* =========================================
+   HUD DASHBOARD (Top Left)
+   ========================================= */
+#hud-dashboard {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  pointer-events: none;
+  z-index: 25;
+  transform-origin: top left;
+  transform: scale(var(--ui-scale, 1));
+}
+
+#hud-dashboard .dashboard-item,
+#hud-dashboard button {
+  pointer-events: auto;
+}
+
+.hud-upper-row {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch !important;
+  gap: 5px;
+  height: 140px;
+  background: rgb(28 28 28 / 19%) !important;
+  box-shadow: 0 0 19px rgb(211 211 211 / 36%) !important;
+  border-radius: 0 !important;
+}
+
+/* --- Status Group (HP/EP/Power) --- */
+.status-group {
+  transform: scale(1) !important;
+  transform-origin: top left;
+  margin-right: 0 !important;
+  margin-bottom: 5px !important;
+  width: 220px;
+  min-width: 220px;
+  flex-shrink: 0;
+}
+
+.status-group .panel-module {
+  height: 100% !important;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+#hud-status-area .stat-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 10px !important;
+}
+
+#hud-status-area .stat-row.no-bar {
+  justify-content: space-between;
+}
+
+#hud-status-area .stat-label {
+  width: 50px;
+  color: #00ffff;
+  font-weight: 700 !important;
+  text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+  font-family: "Orbitron", sans-serif !important;
+  letter-spacing: 1px;
+}
+
+.stat-bar-outer {
+  flex-grow: 1;
+  height: 6px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border: 1px solid #333;
+  margin-right: 8px;
+  padding: 1px;
+}
+
+.stat-bar {
+  height: 100%;
+  transition: width 0.2s ease-out;
+}
+
+.stat-bar.hp {
+  background-color: #00bcd4;
+  box-shadow: 0 0 5px #00bcd4;
+}
+
+.stat-value {
+  width: 35px;
+  text-align: right;
+  font-family: "Orbitron", monospace !important;
+  font-weight: 700 !important;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Specific overrides for values */
+#hp-value, 
+#size-value, 
+#gameover-score,
+#mc-lot-display {
+  font-family: "Orbitron", monospace !important;
+  font-weight: 700 !important;
+  font-variant-numeric: tabular-nums;
+}
+
+#power-value {
+  font-family: "Orbitron", monospace !important;
+  font-variant-numeric: tabular-nums;
+  font-size: 14px !important; /* Matched to chart font size */
+  font-weight: bold !important;
+}
+
+/* --- Chart Panel --- */
+#bottom-chart-panel.dashboard-item {
+  position: relative !important;
+  bottom: auto !important;
+  left: auto !important;
+  right: auto !important;
+  transform: none !important;
+  margin: 0 !important;
+  width: 350px !important;
+  height: 100% !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  backdrop-filter: none !important;
+}
+
+#bottom-chart-left {
+  width: 100% !important;
+  height: 100% !important;
+  border: none !important;
+}
+
+#bottom-chart-panel canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.chart-label-badge {
+  display: none !important;
+}
+
+/* MA Selection (S/M/L buttons) */
+#ma-selection-panel {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  background: transparent !important;
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 6px !important;
+  padding: 2px 0 0 2px !important;
+  z-index: 15;
+  transform: scale(0.9);
+  transform-origin: top left;
+}
+
+.ma-option {
+  margin: 0 !important;
+  display: flex;
+  align-items: center;
+}
+
+.ma-option input[type="checkbox"] {
+  display: none;
+}
+
+.ma-option label {
+  display: inline-block;
+  padding: 2px 8px;
+  background: rgba(30, 30, 30, 0.8);
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: #777;
+  font-size: 10px;
+  font-family: "Roboto Mono", monospace;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  text-align: center;
+  min-width: 15px;
+}
+
+.ma-option label:hover {
+  background: rgba(50, 50, 50, 0.8);
+  border-color: #777;
+  color: #aaa;
+}
+
+.ma-option input:checked + label {
+  background: rgba(0, 0, 0, 0.6);
+  font-weight: bold;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  border-color: currentColor;
+}
+
+.ma-option input#ma-short:checked + label { color: #00ffff; text-shadow: 0 0 5px #00ffff; }
+.ma-option input#ma-medium:checked + label { color: #ffff00; text-shadow: 0 0 5px #ffff00; }
+.ma-option input#ma-long:checked + label { color: #ff00ff; text-shadow: 0 0 5px #ff00ff; }
+
+/* =========================================
+   HUD GROUPS (Radar, etc.)
+   ========================================= */
+.hud-group {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform 0.2s ease;
+  pointer-events: none;
+}
+
+.hud-group.top-right {
+  /* 【修正】バーに重ならないように余白を確保 */
+  top: max(20px, env(safe-area-inset-top));
+  right: max(20px, env(safe-area-inset-right));
+  
+  transform-origin: top right;
+  align-items: flex-end;
+  transform: scale(var(--ui-scale, 1));
+  
+  /* ボタンが押しにくい場合があるため、最前面に来るよう念のため指定 */
+  z-index: 1000; 
+}
+.hud-group.top-right .hud-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.hud-group.top-right .panel-module {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  padding: 0 !important;
+  pointer-events: auto;
+}
+
+.hud-group.top-right .panel-module h3 {
+  display: none !important;
+}
+
+.hud-group.top-right .canvas-wrapper {
+  background: transparent !important;
+  border: none !important;
+  width: 168.75px !important;
+  height: 168.75px !important;
+}
+
+/* =========================================
+   MAGAZINE PANEL
+   ========================================= */
+#magazine-panel {
+  position: fixed !important;
+  bottom: 60px !important;
+  right: -25px !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  z-index: 20;
+  transform: scale(var(--ui-scale, 1));
+  transform-origin: bottom right;
+}
+
+#magazine-panel .canvas-wrapper {
+  background: transparent !important;
+  width: 120px !important;
+  height: 160px !important;
+}
+
+#magazine-panel h3 {
+  display: none !important;
+}
+
+/* =========================================
+   PANEL MODULE BASICS
+   ========================================= */
+.panel-module {
+  background: rgb(5 15 25 / 0%);
+  border: 1px solid rgb(0 255 255 / 0%);
+  padding: 10px;
+  border-radius: 4px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+}
+
+.panel-module h3,
+.panel-module .panel-header-row h3 {
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+  color: #00ffff;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border-bottom: none;
+}
+
+/* =========================================
+   DEBUG PANEL
+   ========================================= */
+.hud-group.bottom-left {
+  bottom: 0;
+  left: 0;
+  transform-origin: bottom left;
+}
+
+#debug-panel {
+  background: rgba(0, 0, 0, 0.8);
+  padding: 10px;
+  border: 1px solid #555;
+  font-family: monospace;
+  font-size: 11px;
+  display: none;
+  pointer-events: auto;
+  /* background override in HTML ignored here, assuming JS controls it or inline styles */
+}
+
+/* =========================================
+   BUTTONS & ACTIONS
+   ========================================= */
+#btn-retire {
+  pointer-events: auto;
+  background-color: #d32f2f;
+  width: auto;
+  opacity: 0.8;
+  font-size: 12px;
+  padding: 8px 20px;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 100;
+  transform: none;
+  margin: 0;
+}
+
+.ui-button {
+  font-family: "Orbitron", "WDXL Lubrifont JP N", "ZCOOL QingKe HuangYou", sans-serif !important;
+  font-weight: 700;
+  font-size: 16px;
+  padding: 12px 30px;
+  border: 1px solid #49a5a5;
+  color: #00ffff;
+  background-color: rgba(0, 20, 30, 0.6);
+  border-radius: 4px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+  width: 260px;
+  max-width: 100%;
+  margin: 0;
+}
+
+.ui-button:hover {
+  background-color: rgba(0, 255, 255, 0.2);
+  color: #fff;
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+}
+
+.ui-button.primary {
+  background-color: rgba(0, 255, 255, 0.3);
+  border-color: #00ffff;
+  color: #fff;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+}
+
+.ui-button.small {
+  width: auto;
+  font-size: 12px;
+  padding: 4px 12px;
+}
+
+/* =========================================
+   SCREENS & MODALS
+   ========================================= */
+.screen {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.screen.active {
+  display: flex;
+}
+
+.screen-content {
+  background: rgba(10, 20, 30, 0.9);
+  border: 1px solid #00ffff;
+  padding: 60px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  min-width: 300px;
+  max-width: 90%;
+  transform-origin: center center;
+}
+
+.screen-content h1 {
+  color: #00ffff;
+  margin: 0 0 20px 0;
+  letter-spacing: 2px;
+}
+
+.screen-content h2 {
+  color: #00ffff;
+  margin: 0;
+}
+
+.ui-modal {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* High z-index */
+}
+
+.ui-modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: #0a1928;
+  border: 1px solid #ff9800;
+  padding: 30px;
+  border-radius: 8px;
+  width: 350px;
+  text-align: center;
+  /* Font inheritance */
+  font-family: "Orbitron", "WDXL Lubrifont JP N", "ZCOOL QingKe HuangYou", sans-serif !important;
+}
+
+/* Cyber Panel Styles (Modals) */
+.cyber-panel {
+  background: rgba(5, 10, 16, 0.95);
+  border: 1px solid #00f3ff;
+  box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
+  padding: 30px;
+  width: 400px;
+  max-width: 90%;
+  text-align: center;
+  position: relative;
+}
+
+.cyber-panel::before {
+  content: "";
+  position: absolute;
+  top: -1px; left: -1px;
+  width: 20px; height: 20px;
+  border-top: 3px solid #ff0055;
+  border-left: 3px solid #ff0055;
+}
+
+.cyber-panel::after {
+  content: "";
+  position: absolute;
+  bottom: -1px; right: -1px;
+  width: 20px; height: 20px;
+  border-bottom: 3px solid #ff0055;
+  border-right: 3px solid #ff0055;
+}
+
+.cyber-separator {
+  border: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #00f3ff, transparent);
+  margin: 20px 0;
+}
+
+/* Inputs */
+.input-group {
+  margin: 20px 0;
+}
+
+input[type="text"] {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid #555;
+  border-bottom: 2px solid #00f3ff;
+  color: #fff;
+  font-family: "Orbitron", sans-serif;
+  font-size: 18px;
+  padding: 10px;
+  width: 100%;
+  text-align: center;
+  outline: none;
+  transition: all 0.3s;
+}
+
+input[type="text"]:focus {
+  background: rgba(0, 243, 255, 0.1);
+  border-color: #ff0055;
+  box-shadow: 0 0 10px rgba(255, 0, 85, 0.3);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.code-display {
+  font-family: "Courier New", monospace;
+  font-size: 24px;
+  letter-spacing: 4px;
+  color: #f9f002;
+  margin: 10px 0;
+  text-shadow: 0 0 10px rgba(249, 240, 2, 0.5);
+  user-select: all;
+}
+
+/* =========================================
+   TYPOGRAPHY HEADINGS
+   ========================================= */
+h1, h2, h3, h4 {
+  font-family: "Orbitron", sans-serif !important;
+  text-transform: uppercase;
+  font-weight: 900 !important;
+  letter-spacing: 2px;
+}
+
+/* Japanese & Message Font Fallbacks */
+#loading-text,
+.screen-content p,
+.modal-content,
+#error-message {
+  font-family: "Orbitron", "WDXL Lubrifont JP N", "ZCOOL QingKe HuangYou", sans-serif !important;
+}
+
+/* =========================================
+   LEADERBOARD
+   ========================================= */
+#hud-leaderboard-container {
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+#leaderboard-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+}
+
+.leaderboard-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 8px;
+  margin-bottom: 2px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 2px;
+}
+
+.leaderboard-row.you {
+  background: rgba(0, 188, 212, 0.25);
+  border: 1px solid rgba(0, 188, 212, 0.5);
+}
+
+.lb-name {
+  color: #ddd;
+}
+
+.lb-score {
+  color: #00bcd4;
+  font-weight: bold;
+  font-family: "Roboto Mono", monospace;
+}
+
+/* Guest/Member visibility toggles */
+body.mode-guest .member-only,
+body.mode-initial .member-only {
+  display: none !important;
+}
+body.mode-member .guest-only {
+  display: none !important;
+}
+
+/* =========================================
+   MOBILE CONTROLS (Virtual Joystick/Buttons)
+   ========================================= */
+#mobile-controls-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 200;
+  pointer-events: none;
+  display: none; /* Hidden by default, shown via media query */
+}
+
+#mc-left-bottom {
+  position: absolute;
+  left: 20px;
+  bottom: 20px;
+  pointer-events: auto;
+}
+
+#mc-right-bottom {
+  position: absolute;
+  right: 40px;
+  bottom: 40px;
+  pointer-events: auto;
+  width: 120px;
+  height: 120px;
+}
+
+/* Joystick */
+#mc-joystick-area {
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 100, 255, 0.2);
+  border: 1px solid #00aaffb8;
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#mc-joystick-knob {
+  width: 40%;
+  height: 40%;
+  background: rgba(0, 200, 255, 0.8);
+  border-radius: 50%;
+  position: absolute;
+}
+
+/* Action Buttons Cluster */
+#mc-action-cluster {
+  position: relative;
+  width: 241px;
+  height: 260px;
+}
+
+#mc-action-cluster > button,
+#mc-action-cluster > div {
+  position: absolute;
+  transform: translate(-29%, -11%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: "Orbitron", "WDXL Lubrifont JP N", "ZCOOL QingKe HuangYou", sans-serif !important;
+  font-weight: 700;
+}
+
+#mc-btn-fire {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: rgb(187 9 9 / 49%);
+  border: 0px solid #ff5252;
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+  z-index: 10;
+  left: 60px;
+  top: 110px;
+}
+#mc-btn-fire:active {
+  background: #ff5252;
+  transform: translate(-50%, -50%) scale(0.95);
+}
+
+#mc-btn-settle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgb(180 181 181 / 34%);
+  border: 0px solid #00ffff;
+  color: #fff;
+  font-size: 10px;
+  font-weight: bold;
+  left: 60px;
+  top: 35px;
+}
+#mc-btn-settle:active {
+  background: #00ffff;
+  color: #000;
+}
+
+#mc-btn-short {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(0, 188, 212, 0.25);
+  border: 0px solid #ffc107;
+  color: #fff;
+  font-size: 11px;
+  font-weight: bold;
+  left: 135px;
+  top: 70px;
+}
+#mc-btn-short:active {
+  background: #ffeb3b;
+  color: #000;
+}
+
+#mc-btn-long {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgb(227 101 101 / 34%);
+  border: 0px solid #ffc107;
+  color: #fff;
+  font-size: 12px;
+  font-weight: bold;
+  left: 150px;
+  top: 150px;
+}
+#mc-btn-long:active {
+  background: #ffeb3b;
+  color: #000;
+}
+
+/* Lot Control */
+#mc-lot-control {
+  width: 140px;
+  height: 50px;
+  transform: none;
+  display: flex;
+  gap: 5px;
+  left: 43px;
+  top: 210px;
+}
+
+.mc-btn-lot {
+  position: static !important;
+  transform: none !important;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgb(84 255 217 / 24%);
+  border: 0px solid #ffffff;
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  box-shadow: none !important;
+}
+.mc-btn-lot:active {
+  background: #ff5252;
+}
+
+#mc-lot-display {
+  position: static !important;
+  transform: none !important;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 5px 10px;
+  border: 0px solid #ff5252;
+  border-radius: 4px;
+  min-width: 30px;
+  text-align: center;
+  box-shadow: none !important;
+}
+
+#mc-turn-controls {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.mc-btn-turn {
+  width: 70px;
+  height: 70px;
+  background: rgba(0, 188, 212, 0.3);
+  border: 0px solid #00ffff;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 24px;
+  font-weight: bold;
+  backdrop-filter: blur(4px);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  font-family: "Orbitron", "WDXL Lubrifont JP N", "ZCOOL QingKe HuangYou", sans-serif !important;
+}
+
+.mc-btn-turn:active {
+  background: rgba(0, 255, 255, 0.6);
+  transform: scale(0.95);
+}
+
+/* =========================================
+   AUDIO & NOTIFICATIONS
+   ========================================= */
+.music-notification {
+  position: fixed;
+  top: 80px;
+  right: -300px;
+  background: rgba(0, 0, 0, 0.7);
+  border-left: 4px solid #00ffff;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  z-index: 1000;
+  transition: right 0.5s cubic-bezier(0.17, 0.84, 0.44, 1);
+  backdrop-filter: blur(5px);
+  border-radius: 4px 0 0 4px;
+  box-shadow: -5px 5px 15px rgba(0, 255, 255, 0.2);
+}
+
+.music-notification.show {
+  right: 0;
+}
+
+.music-icon {
+  font-size: 24px;
+  color: #00ffff;
+  animation: pulse-icon 2s infinite;
+}
+
+.music-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.music-label {
+  font-size: 10px;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.music-title {
+  font-size: 14px;
+  color: #fff;
+  font-family: "Roboto Mono", monospace;
+  font-weight: bold;
+  text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+}
+
+@keyframes pulse-icon {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.7; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.audio-loader {
+  display: none;
+  width: 260px;
+  height: 4px;
+  background: #111;
+  border: 1px solid #333;
+  margin-bottom: 15px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.audio-loader-fill {
+  width: 0%;
+  height: 100%;
+  background-color: #00ffff;
+  box-shadow: 0 0 5px #00ffff;
+  transition: width 0.1s linear;
+}
+
+/* =========================================
+   ORIENTATION WARNING (Mobile Landscape)
+   ========================================= */
+#orientation-warning {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  z-index: 9999;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #00ffff;
+  text-align: center;
+  padding: 20px;
+}
+
+#orientation-warning .icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+  animation: rotate-phone 2s infinite;
+}
+
+@keyframes rotate-phone {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(-90deg); }
+  50% { transform: rotate(-90deg); }
+  75% { transform: rotate(0deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* =========================================
+   MEDIA QUERIES
+   ========================================= */
+
+/* Mobile Controls Enable */
+@media (pointer: coarse) {
+  #mobile-controls-layer {
+    display: block !important;
+  }
+}
+
+/* Tablet & Mobile Layout Adjustments */
+@media (max-width: 1024px), (pointer: coarse) {
+  /* Text Sizing */
+  #hud-status-area .stat-row {
+    font-size: 16px !important;
+  }
+  
+  /* Mobile Control Positioning */
+  #mc-left-bottom {
+    transform: scale(0.8);
+    transform-origin: bottom left;
+    left: 66px !important;
+    bottom: 32px !important;
+  }
+
+  #mc-right-bottom {
+    transform: scale(0.8);
+    transform-origin: bottom right;
+    right: 81px !important;
+    bottom: 68px !important;
+  }
+
+  /* Right HUD Scaling */
+  .hud-group.top-right {
+    right: 10px !important;
+    top: 10px !important;
+    align-items: flex-end !important;
+    gap: -4px !important;
+    transform: scale(0.75) !important;
+  }
+  
+  .hud-group.top-right .hud-row {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 20 !important;
+  }
+
+  /* Dashboard Scaling */
+  #hud-dashboard {
+    top: 10px;
+    left: 66px;
+    bottom: auto;
+    right: auto;
+    transform: scale(0.75) !important;
+    transform-origin: top left;
+    align-items: flex-start;
+    gap: 17px;
+  }
+
+  .hud-upper-row {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch !important;
+    gap: 5px;
+    height: 140px;
+    background: rgb(0 0 0 / 0%) !important;
+    padding: 10px !important;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5) !important;
+    border-radius: 0 !important;
+  }
+
+  .status-group {
+    transform: scale(1) !important;
+    transform-origin: top left;
+    margin-right: 0 !important;
+    margin-bottom: 5px !important;
+    width: 220px;
+    min-width: 220px;
+    flex-shrink: 0;
+  }
+
+  /* Chart Panel Resizing */
+  #bottom-chart-panel.dashboard-item {
+    width: 400px !important;
+    height: 158px !important;
+  }
+
+  #ma-selection-panel {
+    transform: scale(1);
+    transform-origin: top left;
+  }
+
+  /* Magazine Panel Position */
+  #magazine-panel {
+    position: absolute !important;
+    bottom: auto !important;
+    top: 10px !important;
+    right: 140px !important;
+    transform: scale(0.75) !important;
+    transform-origin: top right;
+  }
+
+  /* Retire Button Position */
+  #btn-retire {
+    position: absolute !important;
+    top: 180px !important;
+    right: 10px !important;
+    bottom: auto !important;
+    height: auto !important;
+    padding: 4px 8px !important;
+    font-size: 10px !important;
+    margin: 0 !important;
+    width: auto !important;
+    transform: scale(0.75) !important;
+    transform-origin: top right;
+  }
+
+  /* Music Notification Adjustment */
+  .music-notification {
+    position: absolute !important;
+    top: 135px !important;
+    right: -100% !important; 
+    max-width: 220px;
+    padding: 6px 12px;
+    border-left-width: 3px;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 2000;
+  }
+
+  .music-notification .music-icon {
+    font-size: 18px;
+  }
+
+  .music-notification .music-title {
+    font-size: 12px;
+  }
+
+  .music-notification.show {
+    right: 0 !important;
+  }
+
+  /* Power Value Font Size Check */
+  #power-value {
+    font-size: 14px !important;
+  }
+}
+
+/* Small Device Adjustments (Phones) */
+@media (max-width: 1024px) {
+  #mc-right-bottom {
+    width: 160px !important;
+    height: 80px !important;
+    right: 90px !important;
+    bottom: 76px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  #mc-left-bottom {
+    transform-origin: bottom left;
+    transform: scale(0.85);
+    left: 10px;
+    bottom: 10px;
+  }
+
+  #mc-right-bottom {
+    transform-origin: bottom right;
+    transform: scale(0.85);
+    right: 20px;
+    bottom: 20px;
+  }
+
+  .screen-content {
+    width: 85% !important;
+    min-width: auto !important;
+    padding: 20px !important;
+    gap: 10px !important;
+  }
+
+  .screen-content h1 {
+    font-size: 24px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .ui-button {
+    width: 100% !important;
+    font-size: 14px !important;
+    padding: 10px !important;
+  }
+  
+  .alvolt-logo {
+    font-size: 36px;
+    letter-spacing: 3px;
+  }
+}
+
+/* Orientation Specifics */
+@media only screen and (orientation: portrait) {
+  #cockpit-container,
+  #screen-gameover {
+    width: 100vh;
+    height: 100vw;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(90deg);
+    overflow: hidden;
+    touch-action: none;
+  }
+
+  #screen-ranking.active,
+  #screen-gameover.active {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+@media only screen and (orientation: landscape) {
+  body.mode-menu #screen-ranking,
+  body.mode-menu #screen-gameover {
+    width: 100%;
+    height: 100%;
+    transform: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+}
+
+/* Orientation Warning Logic */
+@media screen and (max-width: 900px) and (orientation: landscape) and (hover: none) and (pointer: coarse) {
+  body:not(.mode-game) #orientation-warning {
+    display: flex;
+  }
+  
+  body:not(.mode-game) #screen-home,
+  body:not(.mode-game) #screen-loading,
+  body:not(.mode-game) #screen-ranking {
+    visibility: hidden;
+  }
+}
+
+/* --- Fullscreen Toggle Button (YouTube Style) --- */
+.icon-button {
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid #00ffff;
+  color: #00ffff;
+  width: 32px;
+  height: 32px;
+  padding: 4px;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.2s ease;
+  pointer-events: auto; /* HUDレイヤーのクリック透過を無効化 */
+}
+
+.icon-button:hover {
+  background: rgba(0, 255, 255, 0.2);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.4);
+}
+
+.icon-button svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+/* モバイル調整: 少し大きくして押しやすく */
+@media (max-width: 1024px) {
+  .icon-button {
+    width: 40px;
+    height: 40px;
+  }
+}
