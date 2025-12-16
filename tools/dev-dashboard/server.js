@@ -244,7 +244,7 @@ app.post('/api/deploy-prod', async (req, res) => {
         await runCommand(`git tag ${tagName}`);
         
         console.log("☁️ Pushing to GitHub/Remote...");
-        await runCommand('git push origin main');       // コードをプッシュ
+        await runCommand('git push origin main');       // テスト
         await runCommand(`git push origin ${tagName}`);
 
         // 3. Client Deploy (Production Environment)
