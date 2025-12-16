@@ -16,7 +16,7 @@ export class GameLoop {
     this.isRunning = true;
   }
 
-  stop(name) {
+  stop(name) { 
     if (this.intervals.has(name)) {
       clearInterval(this.intervals.get(name));
       this.intervals.delete(name);
@@ -29,3 +29,4 @@ export class GameLoop {
     this.isRunning = false;
   }
 }
+//テスト

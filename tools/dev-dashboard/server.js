@@ -85,7 +85,7 @@ function getDirectoryStructure(dir, prefix = '') {
 
 // --- 2. 全コード取得機能 ---
 function getProjectContext() {
-    const targetDirs = ['assets_project/public/src_v2', 'game-server', 'tools'];
+    const targetDirs = ['assets_project/public/src_v2', 'game-server/cloud-run-server/src'];
     const validExtensions = ['.js', '.json', '.html', '.css', '.md'];
     const ignoreList = ['node_modules', 'dist', 'build', 'package-lock.json', '.git'];
     let fullContent = "";
@@ -243,6 +243,10 @@ app.post('/api/deploy-prod', async (req, res) => {
         const tagName = `release-${new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 12)}`;
         await runCommand(`git tag ${tagName}`);
         
+        console.log("☁️ Pushing to GitHub/Remote...");
+        await runCommand('git push origin main');       // コードをプッシュ
+        await runCommand(`git push origin ${tagName}`);
+
         // 3. Client Deploy (Production Environment)
         console.log("🚀 Deploying Client to Production (Firebase)...");
         await runFirebaseCommand('firebase deploy --project alvolt-official --only hosting');
