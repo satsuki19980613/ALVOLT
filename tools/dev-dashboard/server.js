@@ -1,9 +1,13 @@
 const path = require('path');
+// 状態保存用のファイル定義
 const STATE_FILE = path.join(__dirname, 'dashboard-state.json');
+
+// 状態管理変数
 let globalState = {
     currentPhase: 'review', // 初期値
-    // 他に必要なステータスがあればここに追加
+    lastReviewResult: null
 };
+
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const { exec } = require('child_process');
@@ -11,6 +15,7 @@ const fs = require('fs');
 const bodyParser = require('body-parser');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const app = express();
+
 /**
  * 状態をファイルから読み込む
  */
@@ -38,11 +43,14 @@ function saveState() {
     }
 }
 
+// 起動時に状態をロード
 loadState();
+
 const PORT = 3000;
 const ROOT_DIR = path.resolve(__dirname, '../../');
 const FIREBASE_DIR = path.join(ROOT_DIR, 'assets_project');
 const SERVER_DEPLOY_DIR = path.join(ROOT_DIR, 'game-server', 'cloud-run-server');
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json({ limit: '50mb' }));
 
@@ -74,7 +82,6 @@ function runFirebaseCommand(command) {
     });
 }
 
-// ★追加: サーバーデプロイ用コマンド実行関数
 function runServerCommand(command) {
     return new Promise((resolve, reject) => {
         // game-server/cloud-run-server ディレクトリで実行
@@ -149,11 +156,16 @@ function getProjectContext() {
 // API Endpoints
 // ==========================================
 
+// ★修正: Git情報と状態(globalState)をまとめて返す
 app.get('/api/status', async (req, res) => {
     try {
         const branch = (await runCommand('git branch --show-current')).trim();
         const status = await runCommand('git status --short');
-        res.json({ branch, status });
+        res.json({ 
+            branch, 
+            status,
+            ...globalState 
+        });
     } catch (e) { res.status(500).json({ error: e.toString() }); }
 });
 
@@ -210,6 +222,12 @@ ${fullCodebase}
         const text = response.text();
         
         console.log("🤖 Gemini Answered.");
+
+        // ★追加: 審査完了状態を保存
+        globalState.currentPhase = 'review_done';
+        globalState.lastReviewResult = text;
+        saveState();
+
         res.json({ result: "OK", aiResponse: text });
 
     } catch (e) { 
@@ -217,25 +235,26 @@ ${fullCodebase}
         res.status(500).json({ error: e.toString() }); 
     }
 });
-// 例: フェーズ更新API
+
+// ★追加: 却下（再審査）API
+app.post('/api/reject', (req, res) => {
+    globalState.currentPhase = 'review';
+    globalState.lastReviewResult = null;
+    saveState();
+    
+    console.log("Phase reset to: review");
+    res.json({ success: true });
+});
+
+// フェーズ手動更新用（必要に応じて使用）
 app.post('/api/update-phase', (req, res) => {
     const { phase } = req.body;
-
-    // 1. 変数を更新
     globalState.currentPhase = phase; 
-    
-    // 2. ★ここでファイルに保存する！
     saveState();
-
     console.log(`Phase updated to: ${phase}`);
     res.json({ success: true, phase: globalState.currentPhase });
 });
 
-// 例: クライアントが現在の状態を取得するAPI（画面更新時に呼ばれる）
-app.get('/api/status', (req, res) => {
-    // 保存された最新の状態を返す
-    res.json(globalState);
-});
 app.post('/api/deploy-test', async (req, res) => {
     const { message } = req.body;
     let branchName = ""; 
