@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>ALVOLT 運営本部</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="neon-title">ALVOLT OPS CENTER</h1>
+            <div class="status-panel">
+                <div>現在のブランチ: <span id="branch-name" class="status-val">---</span></div>
+                <div>ステータス: <span id="git-status" class="status-val">---</span></div>
+            </div>
+        </header>
+
+        <main>
+            <section id="step-audit" class="panel active">
+                <div class="panel-header">01. AIレビュー</div>
+                
+                <div class="action-area">
+                    <button onclick="runAiAudit()" class="btn btn-cyan">レビューを実行</button>
+                </div>
+                <div id="audit-logs" class="logs hidden"></div>
+                
+                <div id="audit-actions" class="hidden" style="margin-top: 10px; text-align: right;">
+                    <button onclick="overrideFail()" class="btn btn-red" style="font-size: 12px; opacity: 0.7;">強制通過 (AIの指摘を無視)</button>
+                </div>
+            </section>
+
+            <section id="step-test" class="panel disabled">
+                <div class="panel-header">02. テスト</div>
+                
+                <input type="text" id="commit-msg" placeholder="修正内容の要約 (例: バグ修正、移動速度の調整)">
+                <div class="action-area">
+                    <button onclick="deployTest()" class="btn btn-yellow">テスト環境へ反映</button>
+                </div>
+                <div id="test-logs" class="logs hidden"></div>
+            </section>
+
+            <section id="step-prod" class="panel disabled">
+                <div class="panel-header">03. 本番リリース</div>
+                
+                <div class="action-area">
+                    <button onclick="deployProd()" class="btn btn-magenta">本番リリース実行</button>
+                </div>
+                <div id="prod-logs" class="logs hidden"></div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const API = 'http://localhost:3000/api';
+        
+        // ステータス更新ループ
+        async function updateStatus() {
+            try {
+                const res = await fetch(`${API}/status`);
+                const data = await res.json();
+                document.getElementById('branch-name').innerText = data.branch;
+                
+                const isClean = !data.status;
+                const statusEl = document.getElementById('git-status');
+                
+                if (isClean) {
+                    statusEl.innerText = '変更なし (CLEAN)';
+                    statusEl.style.color = '#0f0'; // Green
+                } else {
+                    statusEl.innerText = '未コミットの変更あり (MODIFIED)';
+                    statusEl.style.color = '#ff0'; // Yellow
+                }
+            } catch(e) {
+                console.error("Status fetch error:", e);
+            }
+        }
+        setInterval(updateStatus, 5000); // 5秒ごとに更新
+        updateStatus();
+
+        // ---------------------------------------------
+        // 1. AI審査 (修正版)
+        // ---------------------------------------------
+        async function runAiAudit() {
+            const btn = document.querySelector('#step-audit button');
+            const logEl = document.getElementById('audit-logs');
+            const actionEl = document.getElementById('audit-actions');
+            
+            // ボタンの状態変更
+            btn.innerText = "AI 思考中...";
+            btn.disabled = true;
+            
+            // ログエリアの初期化
+            logEl.classList.remove('hidden');
+            logEl.innerText = "Geminiがコード変更を審査しています...\n(通常 5-10秒 かかります)";
+            logEl.style.borderLeftColor = "#00f3ff"; // デフォルト色
+            actionEl.classList.add('hidden');
+
+            try {
+                const res = await fetch(`${API}/audit`, { method: 'POST' });
+                const data = await res.json();
+
+                // サーバーエラーのハンドリング
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // 差分がない場合
+                if (data.result === "NO_DIFF") {
+                    logEl.innerText = "⚠️ 変更差分がありません。\nコードを修正して保存してから実行してください。";
+                    logEl.style.borderLeftColor = "#ff0"; // 黄色
+                    btn.innerText = "AI審査を実行";
+                    btn.disabled = false;
+                    return;
+                }
+
+                // AIの応答を取得 (ここがundefinedエラーの原因でした。安全に取得します)
+                const responseText = data.aiResponse || "（AIからの応答が空です）";
+                
+                // 画面に表示
+                logEl.innerText = responseText;
+
+                // 判定ロジック
+                if (responseText.includes("PASS")) {
+                    // 合格の場合
+                    logEl.style.borderLeftColor = "#00ff00"; // 緑
+                    btn.innerText = "審査合格 (PASS) ✅";
+                    
+                    // 次のステップを有効化
+                    document.getElementById('step-test').classList.remove('disabled');
+                    document.getElementById('step-audit').classList.add('disabled');
+                } else {
+                    // 不合格の場合
+                    logEl.style.borderLeftColor = "#ff0055"; // 赤
+                    btn.innerText = "審査不合格 (FAIL) ❌";
+                    btn.disabled = false; // 再挑戦可能に
+                    actionEl.classList.remove('hidden'); // 強制ボタン表示
+                }
+
+            } catch(e) {
+                console.error(e);
+                logEl.style.borderLeftColor = "#ff0055"; // 赤
+                logEl.innerText = `❌ システムエラーが発生しました:\n${e.message || e}\n\nサーバーログを確認してください。`;
+                btn.innerText = "エラー (再試行)";
+                btn.disabled = false;
+            }
+        }
+
+        // 強制通過ボタン
+        function overrideFail() {
+            if(!confirm("AIの指摘を無視して次に進みますか？\n（バグのリスクがあります）")) return;
+            document.getElementById('step-test').classList.remove('disabled');
+            document.getElementById('step-audit').classList.add('disabled');
+        }
+
+        // ---------------------------------------------
+        // 2. テスト環境デプロイ
+        // ---------------------------------------------
+        async function deployTest() {
+            const msg = document.getElementById('commit-msg').value || 'update';
+            const logEl = document.getElementById('test-logs');
+            const btn = document.querySelector('#step-test button');
+
+            logEl.classList.remove('hidden');
+            logEl.innerText = "ステージング環境へデプロイ中... (数分かかる場合があります)";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API}/deploy-test`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ message: msg })
+                });
+                const data = await res.json();
+                
+                if(data.success) {
+                    logEl.innerText = `✅ デプロイ成功!\n作成ブランチ: ${data.branch}\n\nテスト環境 (Staging) で動作確認を行ってください。`;
+                    document.getElementById('step-prod').classList.remove('disabled');
+                    document.getElementById('step-test').classList.add('disabled');
+                    // ブランチ名を更新
+                    updateStatus();
+                } else {
+                    logEl.innerText = `❌ デプロイ失敗: ${JSON.stringify(data.error)}`;
+                    btn.disabled = false;
+                }
+            } catch(e) {
+                logEl.innerText = `❌ エラー: ${e}`;
+                btn.disabled = false;
+            }
+        }
+
+        // ---------------------------------------------
+        // 3. 本番リリース
+        // ---------------------------------------------
+        async function deployProd() {
+            if(!confirm("【最終確認】\n本番環境に反映します。\n本当に実行しますか？")) return;
+            
+            const logEl = document.getElementById('prod-logs');
+            const btn = document.querySelector('#step-prod button');
+
+            logEl.classList.remove('hidden');
+            logEl.innerText = "本番環境へデプロイ中... (マージ & タグ付け)";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API}/deploy-prod`, { method: 'POST' });
+                const data = await res.json();
+                
+                if(data.success) {
+                    logEl.innerText = `✅ 本番リリース完了!\nタグ: ${data.tag}\n\nお疲れ様でした！`;
+                    alert("本番反映が完了しました。");
+                    // 3秒後にリロード
+                    setTimeout(() => location.reload(), 3000);
+                } else {
+                    logEl.innerText = `❌ エラー: ${JSON.stringify(data.error)}`;
+                    btn.disabled = false;
+                }
+            } catch(e) {
+                logEl.innerText = `❌ エラー: ${e}`;
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

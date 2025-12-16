@@ -3,10 +3,13 @@
   "version": "1.0.0",
   "description": "ALVOLT: AI-Driven Development Project",
   "scripts": {
-    "gui": "node scripts/gui-server.js",
-    "menu": "node scripts/dev-manager.js"
+    "gui": "node tools/dev-dashboard/server.js"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "body-parser": "^2.2.1",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
     "ws": "^8.13.0"
   }
 }
