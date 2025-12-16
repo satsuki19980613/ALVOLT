@@ -1,19 +1,48 @@
 const path = require('path');
+const STATE_FILE = path.join(__dirname, 'dashboard-state.json');
+let globalState = {
+    currentPhase: 'review', // 初期値
+    // 他に必要なステータスがあればここに追加
+};
 require('dotenv').config({ path: path.join(__dirname, '.env') });
-
 const express = require('express');
 const { exec } = require('child_process');
 const fs = require('fs');
 const bodyParser = require('body-parser');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-
 const app = express();
+/**
+ * 状態をファイルから読み込む
+ */
+function loadState() {
+    if (fs.existsSync(STATE_FILE)) {
+        try {
+            const data = fs.readFileSync(STATE_FILE, 'utf8');
+            const loaded = JSON.parse(data);
+            globalState = { ...globalState, ...loaded };
+            console.log('🔄 Cached state loaded:', globalState);
+        } catch (e) {
+            console.error('⚠️ Failed to load state:', e);
+        }
+    }
+}
+
+/**
+ * 状態をファイルに保存する
+ */
+function saveState() {
+    try {
+        fs.writeFileSync(STATE_FILE, JSON.stringify(globalState, null, 2));
+    } catch (e) {
+        console.error('⚠️ Failed to save state:', e);
+    }
+}
+
+loadState();
 const PORT = 3000;
 const ROOT_DIR = path.resolve(__dirname, '../../');
 const FIREBASE_DIR = path.join(ROOT_DIR, 'assets_project');
-// ★追加: サーバーサイドデプロイ用のディレクトリパス
 const SERVER_DEPLOY_DIR = path.join(ROOT_DIR, 'game-server', 'cloud-run-server');
-
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json({ limit: '50mb' }));
 
@@ -188,7 +217,25 @@ ${fullCodebase}
         res.status(500).json({ error: e.toString() }); 
     }
 });
+// 例: フェーズ更新API
+app.post('/api/update-phase', (req, res) => {
+    const { phase } = req.body;
 
+    // 1. 変数を更新
+    globalState.currentPhase = phase; 
+    
+    // 2. ★ここでファイルに保存する！
+    saveState();
+
+    console.log(`Phase updated to: ${phase}`);
+    res.json({ success: true, phase: globalState.currentPhase });
+});
+
+// 例: クライアントが現在の状態を取得するAPI（画面更新時に呼ばれる）
+app.get('/api/status', (req, res) => {
+    // 保存された最新の状態を返す
+    res.json(globalState);
+});
 app.post('/api/deploy-test', async (req, res) => {
     const { message } = req.body;
     let branchName = ""; 
