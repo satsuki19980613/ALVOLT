@@ -21,7 +21,7 @@ export class GameLoop {
       clearInterval(this.intervals.get(name));
       this.intervals.delete(name);
     }
-  }
+  }//test
 
   stopAll() {
     this.intervals.forEach((id) => clearInterval(id));
