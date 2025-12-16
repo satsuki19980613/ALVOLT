@@ -173,14 +173,47 @@ ${fullCodebase}
 
 app.post('/api/deploy-test', async (req, res) => {
     const { message } = req.body;
+    let branchName = ""; // 変数を外で定義
+    let currentBranch = "";
+
     try {
-        const branchName = `fix/${new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 12)}`;
+        // 現在のブランチ名を保存しておく（エラー時に戻れるように）
+        currentBranch = (await runCommand('git branch --show-current')).trim();
+
+        // 新しいブランチ名を作成
+        branchName = `fix/${new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 12)}`;
+
+        // 1. ブランチ作成 & コミット
         await runCommand(`git checkout -b ${branchName}`);
         await runCommand('git add .');
         await runCommand(`git commit -m "${message}"`);
-        await runCommand('firebase deploy --only hosting:staging,functions');
+
+        // 2. デプロイ実行
+        // ※ 失敗するとここで catch に飛びます
+        await runCommand('firebase deploy --only hosting,functions'); // :staging を消した場合はこちらも合わせる
+
         res.json({ success: true, branch: branchName });
-    } catch (e) { res.status(500).json({ error: e.toString() }); }
+
+    } catch (e) { 
+        console.error("❌ Deploy Failed. Rolling back...");
+        
+        // --- ★自動ロールバック機能★ ---
+        try {
+            // 元のブランチ(mainなど)に戻る
+            if (currentBranch) await runCommand(`git checkout ${currentBranch}`);
+            
+            // 作ってしまった失敗ブランチを削除
+            if (branchName) {
+                await runCommand(`git branch -D ${branchName}`);
+                console.log(`🗑️ Cleaned up branch: ${branchName}`);
+            }
+        } catch (cleanupError) {
+            console.error("⚠️ Cleanup failed:", cleanupError);
+        }
+        // -----------------------------
+
+        res.status(500).json({ error: e.toString() + "\n(作成されたブランチは自動削除されました)" }); 
+    }
 });
 
 app.post('/api/deploy-prod', async (req, res) => {
