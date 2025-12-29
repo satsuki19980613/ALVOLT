@@ -1,0 +1,12 @@
+alvolt_high = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=gcp-asia-northeast1.adb.ap-tokyo-1.oraclecloud.com))(connect_data=(service_name=g212250d01aa311_alvolt_high.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+alvolt_medium = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=gcp-asia-northeast1.adb.ap-tokyo-1.oraclecloud.com))(connect_data=(service_name=g212250d01aa311_alvolt_medium.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+alvolt_low = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=gcp-asia-northeast1.adb.ap-tokyo-1.oraclecloud.com))(connect_data=(service_name=g212250d01aa311_alvolt_low.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+alvolt_tp = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=gcp-asia-northeast1.adb.ap-tokyo-1.oraclecloud.com))(connect_data=(service_name=g212250d01aa311_alvolt_tp.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+alvolt_tpurgent = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=gcp-asia-northeast1.adb.ap-tokyo-1.oraclecloud.com))(connect_data=(service_name=g212250d01aa311_alvolt_tpurgent.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+
+
