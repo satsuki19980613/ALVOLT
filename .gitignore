@@ -47,6 +47,8 @@ build/Release
 # Dependency directories
 node_modules/
 
+wallets/
+
 # Optional npm cache directory
 .npm
 
